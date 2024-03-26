@@ -1,9 +1,10 @@
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class test {
 
-    static String serializedObjectName = "person.ser";
+    static String serializedObjectName = "cereal.ser";
 
     static void serializeObject(Object o) {     //For when a serialized obj file has not been created yet or can't be found
         try {
@@ -12,42 +13,46 @@ public class test {
             out.writeObject(o);
             out.close();
             fileOut.close();
-            System.out.println(String.format("Serialized Object saved to: %s", serializedObjectName));
+            System.out.printf("Serialized Object saved to: %s%n", serializedObjectName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    static Person deserializeObject(String fileName) {
-        Person p = null;
+    static Object deserializeObject(String fileName) {
+        Object o = null;
         try {
-            FileInputStream fileIn = new FileInputStream(serializedObjectName);
+            FileInputStream fileIn = new FileInputStream(fileName);
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            p = (Person) in.readObject();
+            o = in.readObject();
             in.close();
             fileIn.close();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return p;
+        return o;
     }
 
     public static void main(String[] args) {
 
-        Person p = new Person("Scott", 19);
+        ArrayList<Person> people = new ArrayList<>();
+        people.add(new Person("Scott", 19));
+        people.add(new Person("Maddy", 19));
+
         File file = new File(String.format(".\\%s", serializedObjectName));
 
         if (file.isFile()) { //See if serialized object already exists
             System.out.println("file exists");
-            Person fetchedP = deserializeObject(serializedObjectName);
-            System.out.println(fetchedP.name + ", " + fetchedP.age);
+            ArrayList<Person> fetchedObject = (ArrayList) deserializeObject(serializedObjectName);
+            for (Person p : fetchedObject) {
+                System.out.println(p.name + ", " + p.age);
+            }
         } else {             //Create serialized oject file since file not found
             System.out.println("file does not exist...yet");
-            serializeObject(p);
+            serializeObject(people);
         }
 
     }
-
 
 }
 
@@ -61,8 +66,9 @@ class Person implements Serializable {
         this.age = age;
     }
 
-    public void info() {
-        System.out.println(name + ", " + age);
+    public String toString() {
+
+        return name + ", " + age;
     }
 
 }
