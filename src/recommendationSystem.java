@@ -3,9 +3,14 @@ import org.json.simple.parser.JSONParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.*;
 
 public class recommendationSystem {
+
+    //Global Variables
+    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject";
+    static String persistentHashTableName = "persistentHT.ser";
 
     static void getBusinesses(ArrayList<Business> businesses, String path) throws Exception {
         //Setting up the Scanners for both the business and review files
@@ -43,7 +48,7 @@ public class recommendationSystem {
             String businessID = (String) object.get("business_id");
             for (String revID : reviewKeySet) { //for each id in the reviews table
                 if (businessID.equalsIgnoreCase(revID)) {
-                    businesses.add(new Business(name, reviews.get(revID)));
+                    businesses.add(new Business(name, reviews.get(revID), businessID));
                     reviewKeySet.remove(revID);
                     break;
                 }
@@ -214,16 +219,27 @@ public class recommendationSystem {
         }
     }
 
+    static void createPersistentHT(ArrayList<Business> businesses) {
+        Hashtable<String, String> persistentHT = new Hashtable<>(); // <name, id> format
+        for (Business business : businesses) {
+            persistentHT.put(business.name, business.ID);
+        }
+        new Serializer().serializeObject(persistentHT, persistentHashTableName);
+    }
 
+    static Hashtable<String, String> locatePHT() {
+        return null;
+    }
 
     public static void main(String[] args) throws Exception {
 
         //Get and create businesses
-//        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
-//        ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
-//        getBusinesses(allBusinesses, folderPath);
+        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset";
+        ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
+        getBusinesses(allBusinesses, folderPath);
 
-        System.out.println(new File(".\\serializeables").getAbsolutePath());
+        createPersistentHT(allBusinesses);
+        //System.out.println(new File(".\\serializeables").getAbsolutePath());
 
 //        for (Business b : allBusinesses) {
 //            System.out.println(b.name);
