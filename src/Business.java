@@ -1,6 +1,7 @@
 import java.util.*;
+import java.io.Serializable;
 
-public class Business {
+public class Business implements Serializable {
     String name;
     String review;
     float similarityValue;

@@ -183,17 +183,7 @@ public class recommendationSystem {
         return similarBusinesses;
     }
 
-    public static void main(String[] args) throws Exception {
-
-        //Get and create businesses
-        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
-        ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
-        getBusinesses(allBusinesses, folderPath);
-
-        for (Business b : allBusinesses) {
-            System.out.println(b.name);
-        }
-
+    static void runGUI(ArrayList<Business> allBusinesses) throws InterruptedException {
         gui mainFrame = new gui();
         mainFrame.setVisible(true);
 
@@ -222,6 +212,24 @@ public class recommendationSystem {
             }
 
         }
+    }
+
+
+
+    public static void main(String[] args) throws Exception {
+
+        //Get and create businesses
+//        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
+//        ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
+//        getBusinesses(allBusinesses, folderPath);
+
+        System.out.println(new File(".\\serializeables").getAbsolutePath());
+
+//        for (Business b : allBusinesses) {
+//            System.out.println(b.name);
+//        }
+
+        //runGUI(allBusinesses);
 
     }
 
