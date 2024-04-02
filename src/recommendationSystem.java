@@ -227,8 +227,27 @@ public class recommendationSystem {
         new Serializer().serializeObject(persistentHT, persistentHashTableName);
     }
 
-    static Hashtable<String, String> locatePHT() {
-        return null;
+    static Hashtable<String, String> getPersistentHT(String filePath) {
+        Object o = new Serializer().deserializeObject(filePath);
+        return (Hashtable<String, String>) o;
+    }
+
+    static void serializeAllBusiness(ArrayList<Business> businesses) {
+        String path;
+        for (Business b : businesses) {
+            path = directoryPath + File.separator + "businesses" + File.separator + b.ID + ".ser";
+            new Serializer().serializeObject(b, path);
+        }
+    }
+
+    static Business getSerializedBusiness(String fileName) {    //FileName due to PHT holding file name, not the path
+        String path = directoryPath + File.separator +  "businesses" + File.separator + fileName + ".ser";
+        File file = new File(path);
+        if (file.isFile()) {
+            return (Business) new Serializer().deserializeObject(path);
+        } else {
+            return null;
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -238,7 +257,11 @@ public class recommendationSystem {
         ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
         getBusinesses(allBusinesses, folderPath);
 
-        createPersistentHT(allBusinesses);
+//        createPersistentHT(allBusinesses);
+//        Hashtable<String,String> tmp = getPersistentHT(persistentHashTableName);
+
+        serializeAllBusiness(allBusinesses);
+
         //System.out.println(new File(".\\serializeables").getAbsolutePath());
 
 //        for (Business b : allBusinesses) {
