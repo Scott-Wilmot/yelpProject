@@ -3,7 +3,6 @@ import org.json.simple.parser.JSONParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.*;
 
 public class recommendationSystem {

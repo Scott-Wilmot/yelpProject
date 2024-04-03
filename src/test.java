@@ -1,6 +1,8 @@
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class test {
@@ -35,37 +37,41 @@ public class test {
 
     public static void main(String[] args) {
 
-        ArrayList<Person> people = new ArrayList<>();
-        people.add(new Person("Scott", 19));
-        people.add(new Person("Maddy", 19));
-        people.add(new Person("Dijiste", 100));
-
-        String outputFilePath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject\\testOutput";
-        File file = new File(String.format(outputFilePath + File.separator + serializedObjectName));
-        System.out.println(file);
-
-        if (file.isFile()) {    //Serializable exists already
-            ArrayList<Person> personArrayList = (ArrayList<Person>) deserializeObject(file.toString());
-            for (Person p : personArrayList) {
-                System.out.println(p.name + ", " + p.age);
-            }
-        } else {
-            serializeObject(people, file.toString());
-        }
-
-//        if (file.isFile()) { //See if serialized object already exists
-//            System.out.println("file exists");
-//            ArrayList<Person> fetchedObject = (ArrayList) deserializeObject(serializedObjectName);
-//            for (Person p : fetchedObject) {
+//        ArrayList<Person> people = new ArrayList<>();
+//        people.add(new Person("Scott", 19));
+//        people.add(new Person("Maddy", 19));
+//        people.add(new Person("Dijiste", 100));
+//
+//        String outputFilePath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject\\testOutput";
+//        File file = new File(String.format(outputFilePath + File.separator + serializedObjectName));
+//        System.out.println(file);
+//
+//        if (file.isFile()) {    //Serializable exists already
+//            ArrayList<Person> personArrayList = (ArrayList<Person>) deserializeObject(file.toString());
+//            for (Person p : personArrayList) {
 //                System.out.println(p.name + ", " + p.age);
 //            }
-//        } else {             //Create serialized oject file since file not found
-//            System.out.println("file does not exist...yet");
-//            serializeObject(people, outputFilePath);
+//        } else {
+//            serializeObject(people, file.toString());
 //        }
+
+        ArrayList<Integer> ints = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7,8,9));
+
 
     }
 
+}
+
+class Group {
+    int center;
+    ArrayList<Integer> group;
+    public Group(int center) {
+        this.center = center;
+        group.add(center);
+    }
+    public void addToGroup(int value) {
+        group.add(value);
+    }
 }
 
 class Person implements Serializable {
