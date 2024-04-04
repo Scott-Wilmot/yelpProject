@@ -56,17 +56,24 @@ public class test {
 //        }
 
         // Create int list and groups as well as remove the medoid values from the int list
-        ArrayList<Integer> ints = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7,8,9));
-//        Group g1 = new Group(3);
-//        Group g2 = new Group(7);
-//        ints.remove(Integer.valueOf(3)); ints.remove(Integer.valueOf(7));
+//        ArrayList<Integer> ints = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7,8,9));
+//        ArrayList<Group> groupList = new ArrayList<>();
+//        Group g1 = new Group(1); groupList.add(g1);
+//        Group g2 = new Group(7); groupList.add(g2);
+//        Group g3 = new Group(9); groupList.add(g3);
+//        ints.remove(Integer.valueOf(1)); ints.remove(Integer.valueOf(7)); ints.remove(Integer.valueOf(9));
 //
-//        for (int val : ints) {
-//            if (Math.abs(g1.center - val) < Math.abs(g2.center - val)) {
-//                g1.addToGroup(val);
-//            } else {
-//                g2.addToGroup(val);
+//
+//        // This algorithm favors the closestGroup that is already established when it comes to a tie
+//        for (int val : ints) { // Go through values to cluster
+//            Group closestGroup = null; // Keeps track of the group that the int should be assigned too
+//            for (Group g : groupList) {
+//                if (closestGroup == null) {closestGroup = g;} //Base case
+//                else if (Math.abs(g.center - val) < Math.abs(closestGroup.center - val)) { // If current group is closer than closestGroup...
+//                    closestGroup = g;
+//                }
 //            }
+//            closestGroup.addToGroup(val); // With the closest group found, add val to groups values
 //        }
 //
 //        System.out.println("Group 1:");
@@ -77,21 +84,13 @@ public class test {
 //        for (int a : g2.group) {
 //            System.out.println(a);
 //        }
+//        System.out.println("Group 3:");
+//        for (int a : g3.group) {
+//            System.out.println(a);
+//        }
 
     }
 
-}
-
-class Group {
-    int center;
-    ArrayList<Integer> group = new ArrayList<>();
-    public Group(int center) {
-        this.center = center;
-        group.add(center);
-    }
-    public void addToGroup(int value) {
-        group.add(value);
-    }
 }
 
 class Person implements Serializable {

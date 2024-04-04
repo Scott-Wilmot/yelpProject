@@ -8,7 +8,7 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject";
+    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
     static String persistentHashTableName = "persistentHT.ser";
 
     static void getBusinesses(ArrayList<Business> businesses, String path) throws Exception {
@@ -187,38 +187,7 @@ public class recommendationSystem {
         return similarBusinesses;
     }
 
-    static void runGUI(ArrayList<Business> allBusinesses) throws InterruptedException {
-        gui mainFrame = new gui();
-        mainFrame.setVisible(true);
-
-        while (true) {
-
-            if (mainFrame.inputExists) {    //If the user has inputted any input
-                Business business = findBusiness(mainFrame.businessName, allBusinesses);  //Finds the users inputted business
-                if (business != null) {
-                    ArrayList<Business> businesses = new ArrayList<>(allBusinesses); //treats like temporary businesses since my search removes the inputted business from the list of all businesses so if the same list is kept, options will slowly be reduces and searches will not be consistent
-                    Hashtable<String, Float> idf_table = getIDF(businesses, business); //Create an IDF table for all the businesses
-
-                    getSimilarityTables(businesses, idf_table); //Gives each business its similarity rating
-
-                    ArrayList<Business> simBusinesses = mostSimilarBusinesses(business, businesses);
-                    String bothBusinesses = simBusinesses.get(0).name + ", " + simBusinesses.get(1).name;
-                    mainFrame.textArea.setText(bothBusinesses);
-                    mainFrame.inputExists = false;
-                }
-                else {
-                    mainFrame.textArea.setText("Cannot Find Business");
-                }
-
-            }
-            else {
-                Thread.sleep(1000); //Prevents my computer from exploding
-            }
-
-        }
-    }
-
-    static void createPersistentHT(ArrayList<Business> businesses) {
+    static void serializePersistentHT(ArrayList<Business> businesses) {
         Hashtable<String, String> persistentHT = new Hashtable<>(); // <name, id> format
         for (Business business : businesses) {
             persistentHT.put(business.name, business.ID);
@@ -226,7 +195,7 @@ public class recommendationSystem {
         new Serializer().serializeObject(persistentHT, persistentHashTableName);
     }
 
-    static Hashtable<String, String> getPersistentHT(String filePath) {
+    static Hashtable<String, String> deserializePersistentHT(String filePath) {
         Object o = new Serializer().deserializeObject(filePath);
         return (Hashtable<String, String>) o;
     }
@@ -239,35 +208,116 @@ public class recommendationSystem {
         }
     }
 
-    static Business getSerializedBusiness(String fileName) {    //FileName due to PHT holding file name, not the path
-        String path = directoryPath + File.separator +  "businesses" + File.separator + fileName + ".ser";
-        File file = new File(path);
-        if (file.isFile()) {
-            return (Business) new Serializer().deserializeObject(path);
-        } else {
-            return null;
+    static ArrayList<Business> deserializeBusinesses(Hashtable<String,String> pht) {    //FileName due to PHT holding file name, not the path
+        ArrayList<Business> deserializedBusinesses = new ArrayList<>();
+        for (String s : pht.keySet()) {
+            String path = directoryPath + File.separator + "businesses" + File.separator + pht.get(s) + ".ser";
+            File file = new File(path);
+            if (file.isFile()) {
+                deserializedBusinesses.add((Business) new Serializer().deserializeObject(file.toString()));
+            } else {
+                System.out.println("error accessing serialized object");
+            }
+        }
+        return deserializedBusinesses;
+    }
+
+    static ArrayList<Business> deserializeBusinesses(String folderPath, File ptFile, ArrayList<Business> businesses) throws Exception {
+        // Preliminary check to see if the necessary objects have been serialized
+        if (!ptFile.isFile()) {
+            System.out.println("no PT");
+            getBusinesses(businesses, folderPath); // Populate business array through reading the yelp dataset files
+            serializePersistentHT(businesses);
+            serializeAllBusiness(businesses);
+            businesses.clear();
+        }
+        // Runs assuming all necessary objects have been serialized
+        Hashtable<String, String> pht = deserializePersistentHT(ptFile.toString()); // Desearializes the persistent hash table for locating all businesses
+        //
+        return deserializeBusinesses(pht);
+    }
+
+    // Arbitrarily assigns centers since location in arrayList doesn't affect similarity value
+    static ArrayList<Group> clusterSimilarityValues(ArrayList<Business> businesses) {
+        ArrayList<Group> groups = new ArrayList<>();
+        int incrementValue = businesses.size() / 5;
+        //Create groups and store in an array
+        for (int i = 0; groups.size() < 5; i += 1) {
+            groups.add(new Group(businesses.get(incrementValue * i))); // Add a business as a group center
+            businesses.remove(businesses.get(incrementValue * i)); // Then remove added business from the businesses array
+        }
+
+        //Cycle through businesses array and compare each business value to group center value and assign to closest cluster
+        for (Business b : businesses) {
+            Group closestGroup = null;
+            for (Group g : groups) {
+                if (closestGroup == null) {closestGroup = g;}
+                else if (Math.abs(g.center.similarityValue - b.similarityValue) < Math.abs(closestGroup.center.similarityValue - b.similarityValue)) {
+                    closestGroup = g;
+                }
+            }
+            closestGroup.addToGroup(b);
+        }
+
+        return groups;
+    }
+
+    static void runGUI(ArrayList<Business> allBusinesses) throws InterruptedException {
+        // Create GUI object
+        GUI mainFrame = new GUI();
+        mainFrame.setVisible(true);
+
+        // Infinite loop until user closes the window
+        while (true) {
+
+            if (mainFrame.inputExists) {    //If the user has inputted any input
+                Business business = findBusiness(mainFrame.businessName, allBusinesses);  //Finds the users inputted business
+                if (business != null) {
+                    ArrayList<Business> businesses = new ArrayList<>(allBusinesses); //treats like temporary businesses since my search removes the inputted business from the list of all businesses so if the same list is kept, options will slowly be reduces and searches will not be consistent
+                    Hashtable<String, Float> idf_table = getIDF(businesses, business); //Create an IDF table for all the businesses
+
+                    getSimilarityTables(businesses, idf_table); //Gives each business its similarity rating
+
+                    Group inputGroup = null;
+                    for (Group g : clusterSimilarityValues(businesses)) {
+                        for (Business b : g.group) {
+                            if (b.name.equalsIgnoreCase(business.name)) {
+                                inputGroup = g;
+                                break;
+                            }
+                        }
+                    }
+
+                    ArrayList<Business> simBusinesses = mostSimilarBusinesses(business, businesses);
+                    String bothBusinesses = simBusinesses.get(0).name + ", " + simBusinesses.get(1).name;
+
+                    //Handling GUI display and state
+                    mainFrame.textArea.setText(bothBusinesses + "\nCluster center: " + inputGroup.center.name); // display
+                    mainFrame.inputExists = false; // state
+                }
+                else { // Invalid case
+                    mainFrame.textArea.setText("Cannot Find Business");
+                }
+
+            }
+            else {
+                Thread.sleep(1000); //Prevents my computer from exploding
+            }
+
         }
     }
 
     public static void main(String[] args) throws Exception {
 
-        //Get and create businesses
-        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset";
-        ArrayList<Business> allBusinesses = new ArrayList<>(); //keeps a track of all businesses
-        getBusinesses(allBusinesses, folderPath);
+        // Path and File variables
+        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        File ptFile = new File(directoryPath + File.separator + persistentHashTableName);
 
-//        createPersistentHT(allBusinesses);
-//        Hashtable<String,String> tmp = getPersistentHT(persistentHashTableName);
+        // Populate Business array for handling 10,000 businesses
+        ArrayList<Business> businesses = new ArrayList<>();
+        businesses = deserializeBusinesses(folderPath, ptFile, businesses);
 
-        serializeAllBusiness(allBusinesses);
-
-        //System.out.println(new File(".\\serializeables").getAbsolutePath());
-
-//        for (Business b : allBusinesses) {
-//            System.out.println(b.name);
-//        }
-
-        //runGUI(allBusinesses);
+        runGUI(businesses);
 
     }
 

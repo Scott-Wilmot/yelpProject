@@ -3,7 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class gui extends JFrame implements ActionListener {
+public class GUI extends JFrame implements ActionListener {
 
     JButton button;
     JTextField textField;
@@ -11,7 +11,7 @@ public class gui extends JFrame implements ActionListener {
     String businessName;
     boolean inputExists = false;
 
-    gui() {
+    GUI() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new FlowLayout());
 
@@ -42,7 +42,7 @@ public class gui extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        gui gui = new gui();
+        GUI gui = new GUI();
         gui.setVisible(true);
     }
 
