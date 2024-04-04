@@ -55,8 +55,28 @@ public class test {
 //            serializeObject(people, file.toString());
 //        }
 
+        // Create int list and groups as well as remove the medoid values from the int list
         ArrayList<Integer> ints = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7,8,9));
+        Group g1 = new Group(3);
+        Group g2 = new Group(7);
+        ints.remove(Integer.valueOf(3)); ints.remove(Integer.valueOf(7));
 
+        for (int val : ints) {
+            if (Math.abs(g1.center - val) < Math.abs(g2.center - val)) {
+                g1.addToGroup(val);
+            } else {
+                g2.addToGroup(val);
+            }
+        }
+
+        System.out.println("Group 1:");
+        for (int a : g1.group) {
+            System.out.println(a);
+        }
+        System.out.println("Group 2:");
+        for (int a : g2.group) {
+            System.out.println(a);
+        }
 
     }
 
@@ -64,7 +84,7 @@ public class test {
 
 class Group {
     int center;
-    ArrayList<Integer> group;
+    ArrayList<Integer> group = new ArrayList<>();
     public Group(int center) {
         this.center = center;
         group.add(center);
