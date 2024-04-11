@@ -8,7 +8,8 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     static void getBusinesses(ArrayList<Business> businesses, String path) throws Exception {
@@ -310,7 +311,8 @@ public class recommendationSystem {
     public static void main(String[] args) throws Exception {
 
         // Path and File variables
-        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        //String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
         File ptFile = new File(directoryPath + File.separator + persistentHashTableName);
 
         // Populate Business array for handling 10,000 businesses
