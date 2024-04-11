@@ -37,15 +37,30 @@ class Bucket {
         }
         return null;
     }
+
+    void put(String key, String ID) {
+        for (int i = 0; i < MAX_COUNT; i++) {
+            if (keys[i] == null) {
+                keys[i] = key; vals[i] = ID;
+                return;
+            }
+        }
+    }
+
+    void printBucketContents() {
+        for (int i = 0; i < MAX_COUNT; i ++) {
+            if (keys[i] == null) {return;}
+            System.out.println(keys[i] + " ," + vals[i]);
+        }
+    }
+
 }
 class IndexArray implements Serializable {
-    long[] index = new long[1];
-    int size = 0;
+    long[] index = new long[64]; //Starts with
+    int size = 1; //Keeps track of the total number of possible indices
 
     void put(String key) {
-        if (size == index.length) { // Overflow case
-            
-        }
+        if (index == null)
     }
 
     long getBucketPosition(String key) {
@@ -77,8 +92,13 @@ class PHT {
         return bucket.isFile() && index.isFile();
     }
 
-    void put(String key, String value) {
+    // Strictly uses put methods for IndexArray and Bucket, do not worry about resizing here
+    void put(String key, String value) throws IOException, ClassNotFoundException {
+        String bucketPtr = buckets[(int) indexArray.getBucketPosition(key)];
+        Bucket bucket = (Bucket) new ObjectInputStream(new FileInputStream(bucketPtr)).readObject();
 
+        indexArray.put(key);
+        //bucket.put();
     }
 
 }
