@@ -56,12 +56,8 @@ class Bucket {
 
 }
 class IndexArray implements Serializable {
-    long[] index = new long[64]; //Starts with
-    int size = 1; //Keeps track of the total number of possible indices
-
-    void put(String key) {
-        if (index == null)
-    }
+    long[] index; //Starts with
+    int size; //Keeps track of the total number of possible indices
 
     long getBucketPosition(String key) {
         return index[(key.hashCode() & (size - 1))];
@@ -97,7 +93,6 @@ class PHT {
         String bucketPtr = buckets[(int) indexArray.getBucketPosition(key)];
         Bucket bucket = (Bucket) new ObjectInputStream(new FileInputStream(bucketPtr)).readObject();
 
-        indexArray.put(key);
         //bucket.put();
     }
 
