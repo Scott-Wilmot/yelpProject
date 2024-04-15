@@ -22,12 +22,6 @@ public class test {
             new ObjectOutputStream(new FileOutputStream("ex.ser")).writeObject(ex);
             System.out.println(file.isFile());
         } else {
-//            byte[] bytes = Files.readAllBytes(Paths.get("ex.ser"));
-//            buff = ByteBuffer.allocate(bytes[6]);
-//            System.out.println(Arrays.toString(bytes));
-//            buff.put(bytes, 7, bytes[6]);
-//            System.out.println(Arrays.toString(buff.array()));
-//            System.out.println(new String(buff.array()));
             buff = ByteBuffer.wrap(Files.readAllBytes(Paths.get("ex.ser")));
             byte[] temp = new byte[9];
             System.out.println(Arrays.toString(buff.array()));

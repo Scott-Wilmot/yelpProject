@@ -1,5 +1,8 @@
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 
 // sketches for persistent hash tables from (bounded) strings to strings
 class Bucket {
@@ -56,8 +59,17 @@ class Bucket {
 
 }
 class IndexArray implements Serializable {
-    long[] index; //Starts with
-    int size; //Keeps track of the total number of possible indices
+    long[] index; // Tracks where filenames for serialized businesss are in the BUCKETS file
+    int size; // Number of possible indices
+
+    void resize() {
+        long[] oldIndex = index;
+        int oldCapacity = index.length; int newCapacity = oldCapacity << 1;
+        long[] newIndex = new long[newCapacity];
+        for (int i = 0; i < oldCapacity; i++) {
+            newIndex[i] = oldIndex[i];  //Direct mapping since bucket positions don't need to be hashed
+        }
+    }
 
     long getBucketPosition(String key) {
         return index[(key.hashCode() & (size - 1))];
@@ -68,17 +80,17 @@ class PHT {
     static final String bucketFile = "BUCKETS";
     static final String indexFile = "INDEX";
     IndexArray indexArray;
-    String[] buckets;
+    ArrayList<String> buckets;
     PHT() throws IOException, ClassNotFoundException {
         if (fileCheck()) {
             indexArray = (IndexArray)
                     new ObjectInputStream(new FileInputStream(indexFile)).readObject();
-            buckets = (String[])
+            buckets = (ArrayList<String>)
                     new ObjectInputStream(new FileInputStream(bucketFile)).readObject();
         }
         else {
             indexArray = new IndexArray();
-            buckets = new String[1];
+            ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
         }
     }
 
@@ -88,13 +100,4 @@ class PHT {
         return bucket.isFile() && index.isFile();
     }
 
-    // Strictly uses put methods for IndexArray and Bucket, do not worry about resizing here
-    void put(String key, String value) throws IOException, ClassNotFoundException {
-        String bucketPtr = buckets[(int) indexArray.getBucketPosition(key)];
-        Bucket bucket = (Bucket) new ObjectInputStream(new FileInputStream(bucketPtr)).readObject();
-
-        //bucket.put();
-    }
-
 }
-    
