@@ -8,8 +8,8 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
-    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
+    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    //static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     static void getBusinesses(ArrayList<Business> businesses, String path) throws Exception {
