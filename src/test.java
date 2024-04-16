@@ -12,26 +12,29 @@ public class test {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-        String ex = "bucket000bucket001bucket002bucket003";
-        long[] index = new long[4];
-        ArrayList<String> bucketNames = new ArrayList<>();
-        ByteBuffer buff;
+//        String ex = "bucket000bucket001bucket002bucket003";
+//        long[] index = new long[4];
+//        ArrayList<String> bucketNames = new ArrayList<>();
+//        ByteBuffer buff;
+//
+//        File file = new File("ex.ser");
+//        if (!file.isFile()) {
+//            new ObjectOutputStream(new FileOutputStream("ex.ser")).writeObject(ex);
+//            System.out.println(file.isFile());
+//        } else {
+//            buff = ByteBuffer.wrap(Files.readAllBytes(Paths.get("ex.ser")));
+//            byte[] temp = new byte[9];
+//            System.out.println(Arrays.toString(buff.array()));
+//            buff.position(7);
+//            while (buff.hasRemaining()) {
+//                buff.get(temp, 0, 9);
+//                bucketNames.add(new String(temp));
+//            }
+//            System.out.println(bucketNames);
+//        }
 
-        File file = new File("ex.ser");
-        if (!file.isFile()) {
-            new ObjectOutputStream(new FileOutputStream("ex.ser")).writeObject(ex);
-            System.out.println(file.isFile());
-        } else {
-            buff = ByteBuffer.wrap(Files.readAllBytes(Paths.get("ex.ser")));
-            byte[] temp = new byte[9];
-            System.out.println(Arrays.toString(buff.array()));
-            buff.position(7);
-            while (buff.hasRemaining()) {
-                buff.get(temp, 0, 9);
-                bucketNames.add(new String(temp));
-            }
-            System.out.println(bucketNames);
-        }
+        PHT pht = new PHT();
+        pht.put("bucket001", "nine");
 
     }
 

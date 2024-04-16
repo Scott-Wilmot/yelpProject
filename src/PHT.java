@@ -62,6 +62,11 @@ class IndexArray implements Serializable {
     long[] index; // Tracks where filenames for serialized businesss are in the BUCKETS file
     int size; // Number of possible indices
 
+    public IndexArray() {
+        index = new long[1];
+        size = index.length;
+    }
+
     void resize() {
         long[] oldIndex = index;
         int oldCapacity = index.length; int newCapacity = oldCapacity << 1;
@@ -69,6 +74,7 @@ class IndexArray implements Serializable {
         for (int i = 0; i < oldCapacity; i++) {
             newIndex[i] = oldIndex[i];  //Direct mapping since bucket positions don't need to be hashed
         }
+        index = newIndex; size = index.length;
     }
 
     long getBucketPosition(String key) {
@@ -79,8 +85,10 @@ class IndexArray implements Serializable {
 class PHT {
     static final String bucketFile = "BUCKETS";
     static final String indexFile = "INDEX";
+    static final int bucketNameSize = 9;
     IndexArray indexArray;
     ArrayList<String> buckets;
+    ByteBuffer buf;
     PHT() throws IOException, ClassNotFoundException {
         if (fileCheck()) {
             indexArray = (IndexArray)
@@ -90,7 +98,8 @@ class PHT {
         }
         else {
             indexArray = new IndexArray();
-            ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
+            indexArray.index[0] = 16;
+            //ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
         }
     }
 
@@ -98,6 +107,13 @@ class PHT {
         File bucket = new File(bucketFile);
         File index = new File(indexFile);
         return bucket.isFile() && index.isFile();
+    }
+
+    void put(String key, String value) throws IOException {
+        buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
+        buf.array()[6] = 6;
+        long position = indexArray.getBucketPosition(key);
+        System.out.println(position);
     }
 
 }
