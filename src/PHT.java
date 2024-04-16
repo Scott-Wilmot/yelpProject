@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 // sketches for persistent hash tables from (bounded) strings to strings
-class Bucket {
+class Bucket implements Serializable {
     static final int SLEN = 32; // max string length for keys and vals
     static final int BLOCKSIZE = 4096;
     static final int ENTRYWIDTH = SLEN + SLEN;
@@ -34,7 +34,7 @@ class Bucket {
         }
     }
     String get(String key) {
-        for (int j = 0; j < count; ++j) {
+        for (int j = 0; j < MAX_COUNT; ++j) {
             if (key.equals(keys[j]))
                 return vals[j];
         }
@@ -53,7 +53,7 @@ class Bucket {
     void printBucketContents() {
         for (int i = 0; i < MAX_COUNT; i ++) {
             if (keys[i] == null) {return;}
-            System.out.println(keys[i] + " ," + vals[i]);
+            System.out.println(keys[i] + ", " + vals[i]);
         }
     }
 
@@ -62,22 +62,38 @@ class IndexArray implements Serializable {
     long[] index; // Tracks where filenames for serialized businesss are in the BUCKETS file
     int size; // Number of possible indices
 
-    public IndexArray() {
+    public IndexArray() throws IOException {
         index = new long[1];
         size = index.length;
+        if (!new File("BUCKETS").isFile()) {new ObjectOutputStream(new FileOutputStream("BUCKETS")).writeObject("bucket000");} // If a Buckets file does not exist, create a new buckets file with one default bucket
     }
 
-    void resize() {
+    void resize() throws IOException, ClassNotFoundException {
         long[] oldIndex = index;
         int oldCapacity = index.length; int newCapacity = oldCapacity << 1;
         long[] newIndex = new long[newCapacity];
-        for (int i = 0; i < oldCapacity; i++) {
-            newIndex[i] = oldIndex[i];  //Direct mapping since bucket positions don't need to be hashed
+        for (int i = 0; i < newCapacity; i++) { // Makes a new index array capable of holding twice the buckets
+            newIndex[i] = 7 + (9L * i); // the 7 is to skip the serialized String byte padding
         }
-        index = newIndex; size = index.length;
+        Bucket[] buckets = new Bucket[newCapacity]; // Creates a temporary storage for buckets file before serialization and overwrite of old buckets
+        for (int i = 0; i < newCapacity; i++) { // Populates buckets array with empty, new buckets
+            buckets[i] = new Bucket();
+        }
+        // Now remap key-value pairs from indices in oldIndex
+        ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(Path.of("BUCKETS")));
+        byte[] bytes = new byte[9];
+        for (long l : oldIndex) {
+            buf.position((int) l); // Sets position in byte array to that of
+            buf.get(bytes, 0, 9); // Stores bucket name in bytes array
+            Bucket oldBucket = (Bucket) new ObjectInputStream(new FileInputStream(new String(bytes))).readObject(); // Pulls an existing bucket out of storage using index[i]
+            for (int i = 0; i < oldBucket.MAX_COUNT; i++) { // Reassign bucket (k,v)'s
+
+            }
+        }
+        //Remember to update the size before closing the method for future use
     }
 
-    long getBucketPosition(String key) {
+    long getBucketPosition (String key) {
         return index[(key.hashCode() & (size - 1))];
     }
 
@@ -85,35 +101,36 @@ class IndexArray implements Serializable {
 class PHT {
     static final String bucketFile = "BUCKETS";
     static final String indexFile = "INDEX";
-    static final int bucketNameSize = 9;
+    byte[] bucketName = new byte[9]; // Set to size 9 for bucket names of format "bucketxxx"
+    int bucketNameSize = bucketName.length;
     IndexArray indexArray;
-    ArrayList<String> buckets;
     ByteBuffer buf;
+
     PHT() throws IOException, ClassNotFoundException {
-        if (fileCheck()) {
+        if (fileCheck())
             indexArray = (IndexArray)
                     new ObjectInputStream(new FileInputStream(indexFile)).readObject();
-            buckets = (ArrayList<String>)
-                    new ObjectInputStream(new FileInputStream(bucketFile)).readObject();
-        }
-        else {
+        else
             indexArray = new IndexArray();
-            indexArray.index[0] = 16;
-            //ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
-        }
     }
 
-    boolean fileCheck() {
+    private boolean fileCheck() {
         File bucket = new File(bucketFile);
         File index = new File(indexFile);
         return bucket.isFile() && index.isFile();
     }
 
     void put(String key, String value) throws IOException {
-        buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
-        buf.array()[6] = 6;
-        long position = indexArray.getBucketPosition(key);
-        System.out.println(position);
+        int pos = (int) indexArray.getBucketPosition(key);
+
+    }
+
+    void get(String key) throws IOException, ClassNotFoundException {
+        int pos = (int) indexArray.getBucketPosition(key); // Gets the position in BUCKETS file of desired bucket to get value from
+        buf.position(pos);
+        buf.get(bucketName, 0, bucketNameSize); // Stores the bucket name in bucketName temporarily
+        Bucket b = (Bucket) new ObjectInputStream(new ByteArrayInputStream(bucketName)).readObject(); // Retrives bucket using bucketName
+        b.get(key); // Uses Bucket class get method to retrieve value within the bucket class
     }
 
 }
