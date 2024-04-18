@@ -46,8 +46,11 @@ public class test {
 
 
         PHT pht = new PHT();
-        //pht.put("target", "X01"); pht.put("walmart", "X02"); pht.put("aldis", "X03");
-        pht.resize();
+        for (int i = 0; i < 100; i++) {
+            pht.put(Integer.toString(i), Integer.toString(i));
+            System.out.println((float) pht.indexArray.entries / (pht.indexArray.size * 63));
+        }
+        System.out.println(pht.indexArray.size + " " + pht.indexArray.entries);
         pht.printAllBucketContents();
 
     }
