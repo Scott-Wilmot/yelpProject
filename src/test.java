@@ -46,12 +46,8 @@ public class test {
 
 
         PHT pht = new PHT();
-        for (int i = 0; i < 100; i++) {
-            pht.put(Integer.toString(i), Integer.toString(i));
-            System.out.println((float) pht.indexArray.entries / (pht.indexArray.size * 63));
-        }
-        System.out.println(pht.indexArray.size + " " + pht.indexArray.entries);
-        pht.printAllBucketContents();
+        Business b = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + pht.get("Target") + ".ser")).readObject();
+        System.out.println(b.equals(b));
 
     }
 

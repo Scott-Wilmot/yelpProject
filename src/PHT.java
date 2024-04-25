@@ -35,7 +35,7 @@ class Bucket implements Serializable {
     }
     String get(String key) {
         for (int j = 0; j < MAX_COUNT; ++j) {
-            if (key.equals(keys[j]))
+            if (key.equalsIgnoreCase(keys[j]))
                 return vals[j];
         }
         return null;
@@ -47,7 +47,7 @@ class Bucket implements Serializable {
                 keys[i] = key; vals[i] = ID;
                 return true; // Indicates a new value was inserted into the table successfully
             }
-            else if (keys[i].equals(key)) return false; // Indicates that the (k,v) pair is already present in the table
+            else if (keys[i].equalsIgnoreCase(key)) return false; // Indicates that the (k,v) pair is already present in the table
         }
         return false;
     }
@@ -70,7 +70,7 @@ class IndexArray implements Serializable {
         size = index.length;
         entries = 0;
         new ObjectOutputStream(new FileOutputStream("BUCKETS.ser")).writeObject("bucket000"); // Creates a brand new buckets file since this will only happen if a buckets file is not found
-        new ObjectOutputStream(new FileOutputStream("C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject\\buckets\\" + "bucket000.ser")).writeObject(new Bucket());
+        new ObjectOutputStream(new FileOutputStream("buckets\\" + "bucket000.ser")).writeObject(new Bucket());
     }
 
     long getBucketPosition (String key) {
@@ -104,6 +104,14 @@ class PHT {
 
     private void updateBuffer() throws IOException { // Since the bucket file is loaded to the bytebuffer and can be changed whenever, it is importantto pass the most recent BUCKETS file to the buffer
         buf = ByteBuffer.wrap(Files.readAllBytes(Path.of(bucketFile)));
+    }
+
+    // Can implement this in many places to make code more readable
+    Bucket getBucket(long position) throws IOException, ClassNotFoundException {
+        updateBuffer();
+        buf.position((int) position);
+        buf.get(bucketName, 0, bucketNameSize);
+        return (Bucket) new ObjectInputStream(new FileInputStream("buckets\\" + new String(bucketName) + ".ser")).readObject();
     }
 
     void put(String key, String value) throws IOException, ClassNotFoundException {

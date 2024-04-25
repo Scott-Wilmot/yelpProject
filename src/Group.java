@@ -10,4 +10,12 @@ public class Group {
     public void addToGroup(Business business) {
         group.add(business);
     }
+    public boolean contains(String name) {
+        for (Business b : group) {
+            if (name.equalsIgnoreCase(b.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
