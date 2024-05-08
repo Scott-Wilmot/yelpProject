@@ -8,12 +8,12 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
-    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
+    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    //static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     // Creates all 10000 businesses as serialized files and adds <name,ID> pairs to pht
-    static void serializeBusinesses(PHT pht, String path) throws Exception {
+    static void getBusinesses(PHT pht, String path, Graph graph) throws Exception {
         //Setting up the Scanners for both the business and review files
         File businessFile = new File(path + File.separator + "yelp_academic_dataset_business.json");
         InputStream businessStream = new FileInputStream(businessFile);
@@ -48,11 +48,16 @@ public class recommendationSystem {
             JSONObject object = (JSONObject) new JSONParser().parse(line);
             String name = (String) object.get("name");
             String businessID = (String) object.get("business_id");
+            double latitude = (double) object.get("latitude");
+            double longitude = (double) object.get("longitude");
             for (String revID : reviewKeySet) { //for each id in the reviews table
                 if (businessID.equalsIgnoreCase(revID)) {
-                    Business b = new Business(name, reviews.get(revID), businessID);
+                    Business b = new Business(name, reviews.get(revID), businessID, latitude, longitude);
                     new ObjectOutputStream(new FileOutputStream(directoryPath + "\\businesses\\" + businessID + ".ser")).writeObject(b);
                     pht.put(name, businessID);
+//                    if (createdBusinesses % 100 == 0) {
+//                        graph.addNode(b, latitude, longitude);
+//                    }
                     createdBusinesses++;
                     reviewKeySet.remove(revID);
                     break;
@@ -318,16 +323,17 @@ public class recommendationSystem {
     public static void main(String[] args) throws Exception {
 
         // Path and File variables
-        //String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
-        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
+        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        //String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
 
         // Serialize all businesses and create a PHT
         PHT pht = new PHT();
-        //serializeBusinesses(pht, folderPath);
+        Graph graph = new Graph();
+        getBusinesses(pht, folderPath, graph);
 
         pht.printAllBucketContents();
 
-        runGUI(pht);
+        //runGUI(pht);
 
     }
 

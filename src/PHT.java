@@ -180,14 +180,12 @@ class PHT {
 
     void printAllBucketContents() throws IOException, ClassNotFoundException {
         updateBuffer();
-        int count = 0;
         for (long l : indexArray.index) {
             System.out.println(l + ": ");
             buf.position((int) l);
             buf.get(bucketName, 0, bucketNameSize);
             Bucket b = (Bucket) new ObjectInputStream(new FileInputStream("buckets\\" + new String(bucketName) + ".ser")).readObject();
             b.printBucketContents();
-            count++;
         }
     }
 
