@@ -21,12 +21,24 @@ class Edge implements Comparable<Edge> {
 
 class Node implements Comparable<Node> {
     String ID;
-    Collection<Edge> edges;
+    Collection<Edge> edges = new ArrayList<>();
     Node parent;
     double best;
     int pqIndex;
     Node(String ID) {
         this.ID = ID;
+    }
+
+    void addEdge(Node src, Node dst) throws IOException, ClassNotFoundException {
+        Edge e = new Edge(src, dst);
+        edges.add(e);
+    }
+
+    boolean containEdge(Node dst) {
+        for (Edge e : edges) {
+            if (e.dst.ID.equals(dst.ID)) { return true; } // Return true if there is a found match in edges
+        }
+        return false; // Return false if dst not found in edges
     }
 
     @Override
@@ -95,56 +107,101 @@ public class Graph implements Serializable {
     }
 
     // Use this to initialize each nodes closest neighbors
-    void createEdges(PHT pht) throws IOException, ClassNotFoundException {
+//    void createEdges(PHT pht) throws IOException, ClassNotFoundException {
+//        int count = 0;
+//        for (Node node : nodes) { // For each node...
+//            Business nodeBusiness = getBusiness(node.ID);
+//            String[] businessIDs = new String[4];
+//
+//            for (long l : pht.indexArray.index) { // For each bucket in PHT...
+//                Bucket bucket = pht.getBucket(l);
+//
+//                for (String key : bucket.keys) { // For each business in Bucket...
+//                    if (key == null) break; //You've reached the end of the list...next bucket
+//                    Business business = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + bucket.get(key) + ".ser")).readObject();
+//
+//                    // Now compare to the existing edges to check if business is closer
+//                    for (int i = 0; i < businessIDs.length; i++) { // For each edge in edges
+//                        // Case: Business-nodeBusiness match -> skip iteration
+//                        if (business.ID.equals(nodeBusiness.ID)) {break;}
+//                        // Case: Auto populate on null entry
+//                        if (businessIDs[i] == null) {
+//                            businessIDs[i] = business.ID;
+//                            break;
+//                        }
+//                        // Calculating distances between node and the two points that ae competeing (use haversine)
+//                        double node_existing_diff = haversine(nodeBusiness, getBusiness(businessIDs[i])); // Difference between an established similar node and source node
+//                        double node_new_diff = haversine(nodeBusiness, business); // Difference between new testing node and source node
+//                        if (node_new_diff <= node_existing_diff) {
+//                            for (int j = businessIDs.length - 1; j > i; j--) {
+//                                businessIDs[j] = businessIDs[j - 1];
+//                            }
+//                            businessIDs[i] = business.ID;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//            // Cast BusinessIDs to Edge here?
+//            System.out.println(count);
+//            count++;
+//        }
+//
+//    }
+
+    // Creates edges for all Nodes in nodes list
+    void createEdges() throws IOException, ClassNotFoundException {
         int count = 0;
-        for (Node node : nodes) { // For each node...
-            Business nodeBusiness = getBusiness(node.ID);
-            String[] businessIDs = new String[4];
-
-            for (long l : pht.indexArray.index) { // For each bucket in PHT...
-                Bucket bucket = pht.getBucket(l);
-
-                for (String key : bucket.keys) { // For each business in Bucket...
-                    if (key == null) break; //You've reached the end of the list...next bucket
-                    Business business = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + bucket.get(key) + ".ser")).readObject();
-
-                    // Now compare to the existing edges to check if business is closer
-                    for (int i = 0; i < businessIDs.length; i++) { // For each edge in edges
-                        // Case: Business-nodeBusiness match -> skip iteration
-                        if (business.ID.equals(nodeBusiness.ID)) {break;}
-                        // Case: Auto populate on null entry
-                        if (businessIDs[i] == null) {
-                            businessIDs[i] = business.ID;
-                            break;
+        // Loop through nodes list to assign edges for every node
+        for (Node srcNode : nodes) {
+            int neededNodes = 4 - srcNode.edges.size(); // Represents the amount of missing edges/nodes a node needs
+            if (neededNodes <= 0) { continue; } // Skips searching for node edges if there are none left to find
+            Node[] closestNodes = new Node[neededNodes]; // Arbitrary number of closest neighbors
+            Business srcBusiness = getBusiness(srcNode.ID);
+            // Loop through nodes again to find closest nodes
+            for (Node dstNode : nodes) {
+                if (dstNode.ID.equals(srcNode.ID) || srcNode.containEdge(dstNode)) { continue; } // Skip this iteration if src and dst node are the same OR the dstNode is already an edge in srcNode
+                // Setup dstDiff value to save unnecessary repeat calculations
+                Business dstBusiness = getBusiness(dstNode.ID);
+                double dstDiff = haversine(srcBusiness, dstBusiness);
+                // Now compare dstNode to each closest node to see if a swap is needed
+                for (int i = 0; i < closestNodes.length; i++) {
+                    // Case: null value in closest nodes index -> fill with dstNode
+                    if (closestNodes[i] == null) { closestNodes[i] = dstNode; }
+                    Business closeBusiness = getBusiness(closestNodes[i].ID);
+                    double closeDiff = haversine(srcBusiness, closeBusiness);
+                    if (dstDiff <= closeDiff) {
+                        //System.out.println("Inserting: " + dstDiff + " in place of: " + closeDiff);
+                        for (int j = closestNodes.length - 1; j > i; j--) {
+                            closestNodes[j] = closestNodes[j - 1];;
                         }
-                        // Calculating distances between node and the two points that ae competeing (use haversine)
-                        double node_existing_diff = haversine(nodeBusiness, getBusiness(businessIDs[i])); // Difference between an established similar node and source node
-                        double node_new_diff = haversine(nodeBusiness, business); // Difference between new testing node and source node
-                        if (node_new_diff <= node_existing_diff) {
-                            for (int j = businessIDs.length - 1; j > i; j--) {
-                                businessIDs[j] = businessIDs[j - 1];
-                            }
-                            businessIDs[i] = business.ID;
-                            break;
-                        }
+                        closestNodes[i] = dstNode;
+                        break;
                     }
                 }
             }
-            // Cast BusinessIDs to Edge here?
+            for (Node node : closestNodes) {
+                System.out.print(haversine(srcBusiness, getBusiness(node.ID)) + ", ");
+            }
+            // Map closest nodes to edges in the source node
+            for (Node dstNode : closestNodes) {
+                srcNode.addEdge(srcNode, dstNode); // Creates an edge from src to a closest node
+                dstNode.addEdge(dstNode, srcNode); // Also adds an edge from dst to src
+            }
+            //break; // Use this to stop after one nodes edges generate
             System.out.println(count);
             count++;
         }
-
     }
 
-    void buildMinimumSpanningTree(Node root, Node destination) {
+    void buildShortestPathTree(Node root, Node destination) {
         PQ pq = new PQ(nodes, root);
         Node p;
-        while ((p = pq.poll()) != null) {
+        while ((p = pq.poll()) != null) { // Continuously pull nodes from PQ until no remaining nodes
             //if (p == destination) break;
-            for (Edge e : p.edges) {
-                Node s = e.src, d = e.dst;
-                double w = s.best + e.weight;
+            for (Edge e : p.edges) { // For all edges of a node
+                Node s = e.src, d = e.dst; // Source and Destination nodes
+                double w = s.best + e.weight; //
                 if (w < d.best) {
                     d.parent = s;
                     d.best = w;

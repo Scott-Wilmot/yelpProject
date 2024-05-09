@@ -114,17 +114,22 @@ class PHT {
         return (Bucket) new ObjectInputStream(new FileInputStream("buckets\\" + new String(bucketName) + ".ser")).readObject();
     }
 
-    void put(String key, String value) throws IOException, ClassNotFoundException {
+    boolean put(String key, String value) throws IOException, ClassNotFoundException {
         updateBuffer();
+        boolean businessPlaced = false;
         int pos = (int) indexArray.getBucketPosition(key); // Hashes key to find proper bucket position
         buf.position(pos);
         buf.get(bucketName, 0, bucketNameSize); // Gets proper bucket name
         Bucket b = (Bucket) new ObjectInputStream(new FileInputStream("buckets\\" + new String(bucketName) + ".ser")).readObject(); // Retrives bucket using bucketName
-        if (b.put(key, value))  // Only increments entries if the table did not contain the key
-            indexArray.entries++; new ObjectOutputStream(new FileOutputStream(indexFile)).writeObject(indexArray); // Increment the total number of entries in the table then re-serialize
+        if (b.put(key, value)) { // Only increments entries if the table did not contain the key
+            indexArray.entries++;
+            new ObjectOutputStream(new FileOutputStream(indexFile)).writeObject(indexArray); // Increment the total number of entries in the table then re-serialize
+            businessPlaced = true;
+        }
         new ObjectOutputStream(new FileOutputStream("buckets\\" + new String(bucketName) + ".ser")).writeObject(b); // Updates and reserializes bucket
         if ((float) indexArray.entries/(indexArray.size*63) >= 0.75f)
             resize();
+        return businessPlaced;
     }
 
     String get(String key) throws IOException, ClassNotFoundException {
@@ -176,6 +181,16 @@ class PHT {
             }
         }
         System.out.println("Resize: " + oldCapacity + " -> " + newCapacity);
+    }
+
+    boolean contains(String key) throws IOException, ClassNotFoundException {
+        updateBuffer();
+        int pos = (int) indexArray.getBucketPosition(key);
+        buf.position(pos);
+        buf.get(bucketName, 0, bucketNameSize); // Stores the bucket name in bucketName temporarily
+        Bucket b = (Bucket) new ObjectInputStream(new FileInputStream("buckets\\" + new String(bucketName) + ".ser")).readObject(); // Retrives bucket using bucketName
+        if (b.get(key) == null) { return false; }
+        else { return true; }
     }
 
     void printAllBucketContents() throws IOException, ClassNotFoundException {

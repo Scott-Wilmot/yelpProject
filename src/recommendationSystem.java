@@ -13,7 +13,7 @@ public class recommendationSystem {
     static String persistentHashTableName = "persistentHT.ser";
 
     // Creates all 10000 businesses as serialized files and adds <name,ID> pairs to pht
-    static void getBusinesses(PHT pht, String path, Graph graph) throws Exception {
+    static void getBusinesses(PHT pht, String path) throws Exception {
         //Setting up the Scanners for both the business and review files
         File businessFile = new File(path + File.separator + "yelp_academic_dataset_business.json");
         InputStream businessStream = new FileInputStream(businessFile);
@@ -27,11 +27,11 @@ public class recommendationSystem {
         int createdBusinesses = 0;
         while (createdBusinesses < 10000) { //Until 10000 valid businesses have been found
 
-            /*if (!businessScanner.hasNextLine()) {
-                System.out.println("trigger");
+            // This special if stmt resets the business scanner on eof which is needed to read 10000 true unique businesses
+            if (!businessScanner.hasNextLine()) {
                 businessScanner = new Scanner(new FileInputStream(businessFile));
                 reviews = new Hashtable<>();
-            }*/
+            }
 
             while (reviews.size() < 10000) { //Fill reviews to same number as remaining businesses
                 String line = reviewScanner.nextLine();
@@ -51,13 +51,10 @@ public class recommendationSystem {
             double latitude = (double) object.get("latitude");
             double longitude = (double) object.get("longitude");
             for (String revID : reviewKeySet) { //for each id in the reviews table
-                if (businessID.equalsIgnoreCase(revID)) {
+                // If the key can be placed in the pht successfully then serialize related business into a serialized file
+                if (businessID.equalsIgnoreCase(revID) && pht.put(name, businessID)) {
                     Business b = new Business(name, reviews.get(revID), businessID, latitude, longitude);
                     new ObjectOutputStream(new FileOutputStream(directoryPath + "\\businesses\\" + businessID + ".ser")).writeObject(b);
-                    pht.put(name, businessID);
-//                    if (createdBusinesses % 100 == 0) {
-//                        graph.addNode(b, latitude, longitude);
-//                    }
                     createdBusinesses++;
                     reviewKeySet.remove(revID);
                     break;
@@ -328,12 +325,12 @@ public class recommendationSystem {
 
         // Serialize all businesses and create a PHT
         PHT pht = new PHT();
-        Graph graph = new Graph();
-        getBusinesses(pht, folderPath, graph);
+        //Graph graph = new Graph();
+        //getBusinesses(pht, folderPath);
 
         pht.printAllBucketContents();
 
-        //runGUI(pht);
+        runGUI(pht);
 
     }
 

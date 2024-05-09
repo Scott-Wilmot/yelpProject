@@ -30,11 +30,16 @@ public class test {
 //
 //        System.out.println(Arrays.toString(ints));
 
+//        PHT pht = new PHT();
+//        Graph graph = new Graph();
+//        graph.getNodes(pht);
+//        graph.createEdges(pht);
+//        graph.buildMinimumSpanningTree(graph.nodes.get(0), null);
+
         PHT pht = new PHT();
         Graph graph = new Graph();
         graph.getNodes(pht);
-        graph.createEdges(pht);
-        graph.buildMinimumSpanningTree(graph.nodes.get(0), null);
+        graph.createEdges();
 
     }
 
