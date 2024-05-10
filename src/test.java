@@ -1,3 +1,6 @@
+import javax.swing.*;
+import javax.tools.Tool;
+import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -14,33 +17,33 @@ public class test {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-//        int[] ints = {3, 5, 6, 8};
-//
-//        int replacement = 7;
-//        for (int i = 0; i < ints.length; i++) {
-//            //Replacement case, else do nothing
-//            if (replacement <= ints[i]) {
-//                for (int j = ints.length - 1; j > i; j--) {
-//                    ints[j] = ints[j - 1];
-//                }
-//                ints[i] = replacement;
-//                break;
-//            }
-//        }
-//
-//        System.out.println(Arrays.toString(ints));
-
 //        PHT pht = new PHT();
 //        Graph graph = new Graph();
-//        graph.getNodes(pht);
-//        graph.createEdges(pht);
-//        graph.buildMinimumSpanningTree(graph.nodes.get(0), null);
+//        graph.buildShortestPathTree(graph.nodes.get(0), null);
+//        graph.nodesInformation();
 
-        PHT pht = new PHT();
-        Graph graph = new Graph();
-        graph.getNodes(pht);
-        graph.createEdges();
+        UI ui = new UI();
 
+    }
+
+}
+
+class UI extends JFrame {
+
+    UI () {
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension panelSize = new Dimension((int) (screenSize.getWidth() / 2), (int) screenSize.getHeight());
+
+        JPanel similarPanel = new JPanel(new BorderLayout());
+        similarPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+        similarPanel.setSize(panelSize);
+
+
+
+        this.add(similarPanel);
+        this.pack();
+        this.setVisible(true);
     }
 
 }

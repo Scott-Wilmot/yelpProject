@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-class Edge implements Comparable<Edge> {
+class Edge implements Comparable<Edge>, Serializable {
     Node src, dst;
     double weight;
     Edge(Node src, Node dst) throws IOException, ClassNotFoundException {
@@ -15,11 +15,11 @@ class Edge implements Comparable<Edge> {
 
     @Override
     public int compareTo(Edge o) {
-        return 0;
+        return Double.compare(weight, o.weight);
     }
 }
 
-class Node implements Comparable<Node> {
+class Node implements Comparable<Node>, Serializable {
     String ID;
     Collection<Edge> edges = new ArrayList<>();
     Node parent;
@@ -43,37 +43,36 @@ class Node implements Comparable<Node> {
 
     @Override
     public int compareTo(Node o) {
-        return 0;
+        return Double.compare(best, o.best);
     }
 }
 
-public class Graph implements Serializable {
+public class Graph {
 
-//    static class Node {
-//        String ID;
-//        Edge[] edges = new Edge[4];
-//        Node(String ID) {
-//            this.ID = ID;
-//        }
-//    }
-
-//    class Edge {
-//        Node src, dst;
-//        float weight;
-//        Edge(Node src, Node dst) {
-//            this.src = src;
-//            this.dst = dst;
-//            weight = 0;
-//        }
-//    }
+    Graph () throws IOException, ClassNotFoundException {
+        String nodeFile = "NODES.ser";
+        if (new File(nodeFile).isFile()) { // If a serialized node file can be found
+            nodes = (ArrayList<Node>) new ObjectInputStream(new FileInputStream(nodeFile)).readObject();
+        }
+        else { // Will create edges and serialize them to a file
+            getNodes(new PHT());
+            createEdges();
+        }
+    }
 
     Business getBusiness(String ID) throws IOException, ClassNotFoundException {
         return (Business) new ObjectInputStream(new FileInputStream("businesses\\" + ID + ".ser")).readObject();
     }
 
-    void printAllNodes() {
+    void nodeNames() throws IOException, ClassNotFoundException {
         for (Node node : nodes) {
-            System.out.println(node.ID);
+            System.out.println(getBusiness(node.ID).name);
+        }
+    }
+
+    void nodesInformation() throws IOException, ClassNotFoundException {
+        for (Node node : nodes) {
+            System.out.println(node.ID + ", " + node.best);
         }
     }
 
@@ -106,61 +105,16 @@ public class Graph implements Serializable {
         }
     }
 
-    // Use this to initialize each nodes closest neighbors
-//    void createEdges(PHT pht) throws IOException, ClassNotFoundException {
-//        int count = 0;
-//        for (Node node : nodes) { // For each node...
-//            Business nodeBusiness = getBusiness(node.ID);
-//            String[] businessIDs = new String[4];
-//
-//            for (long l : pht.indexArray.index) { // For each bucket in PHT...
-//                Bucket bucket = pht.getBucket(l);
-//
-//                for (String key : bucket.keys) { // For each business in Bucket...
-//                    if (key == null) break; //You've reached the end of the list...next bucket
-//                    Business business = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + bucket.get(key) + ".ser")).readObject();
-//
-//                    // Now compare to the existing edges to check if business is closer
-//                    for (int i = 0; i < businessIDs.length; i++) { // For each edge in edges
-//                        // Case: Business-nodeBusiness match -> skip iteration
-//                        if (business.ID.equals(nodeBusiness.ID)) {break;}
-//                        // Case: Auto populate on null entry
-//                        if (businessIDs[i] == null) {
-//                            businessIDs[i] = business.ID;
-//                            break;
-//                        }
-//                        // Calculating distances between node and the two points that ae competeing (use haversine)
-//                        double node_existing_diff = haversine(nodeBusiness, getBusiness(businessIDs[i])); // Difference between an established similar node and source node
-//                        double node_new_diff = haversine(nodeBusiness, business); // Difference between new testing node and source node
-//                        if (node_new_diff <= node_existing_diff) {
-//                            for (int j = businessIDs.length - 1; j > i; j--) {
-//                                businessIDs[j] = businessIDs[j - 1];
-//                            }
-//                            businessIDs[i] = business.ID;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//            // Cast BusinessIDs to Edge here?
-//            System.out.println(count);
-//            count++;
-//        }
-//
-//    }
-
     // Creates edges for all Nodes in nodes list
     void createEdges() throws IOException, ClassNotFoundException {
         int count = 0;
         // Loop through nodes list to assign edges for every node
         for (Node srcNode : nodes) {
-            int neededNodes = 4 - srcNode.edges.size(); // Represents the amount of missing edges/nodes a node needs
-            if (neededNodes <= 0) { continue; } // Skips searching for node edges if there are none left to find
-            Node[] closestNodes = new Node[neededNodes]; // Arbitrary number of closest neighbors
+            Node[] closestNodes = new Node[4]; // Arbitrary number of closest neighbors
             Business srcBusiness = getBusiness(srcNode.ID);
             // Loop through nodes again to find closest nodes
             for (Node dstNode : nodes) {
-                if (dstNode.ID.equals(srcNode.ID) || srcNode.containEdge(dstNode)) { continue; } // Skip this iteration if src and dst node are the same OR the dstNode is already an edge in srcNode
+                if (dstNode.ID.equals(srcNode.ID)) { continue; } // Skip this iteration if src and dst node are the same OR the dstNode is already an edge in srcNode
                 // Setup dstDiff value to save unnecessary repeat calculations
                 Business dstBusiness = getBusiness(dstNode.ID);
                 double dstDiff = haversine(srcBusiness, dstBusiness);
@@ -186,12 +140,13 @@ public class Graph implements Serializable {
             // Map closest nodes to edges in the source node
             for (Node dstNode : closestNodes) {
                 srcNode.addEdge(srcNode, dstNode); // Creates an edge from src to a closest node
-                dstNode.addEdge(dstNode, srcNode); // Also adds an edge from dst to src
             }
             //break; // Use this to stop after one nodes edges generate
             System.out.println(count);
             count++;
         }
+        // Serialize list of nodes so you don't need to wait 5 min for each program execution
+        new ObjectOutputStream(new FileOutputStream("NODES.ser")).writeObject(nodes);
     }
 
     void buildShortestPathTree(Node root, Node destination) {
@@ -211,9 +166,7 @@ public class Graph implements Serializable {
         }
     }
 
-
     ArrayList<Node> nodes = new ArrayList<>(); // Maybe change back to a collection later
-    ArrayList<Edge> edges = new ArrayList<>();
 
 }
 

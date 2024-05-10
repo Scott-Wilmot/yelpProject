@@ -8,8 +8,8 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
-    //static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
+    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     // Creates all 10000 businesses as serialized files and adds <name,ID> pairs to pht
@@ -296,7 +296,7 @@ public class recommendationSystem {
                             break;
                         }
                     }
-                    reclusterGroups(groups);
+                    //reclusterGroups(groups);
 
                     ArrayList<Business> simBusinesses = mostSimilarBusinesses(business, pht);
                     String bothBusinesses = simBusinesses.get(0).name + ", " + simBusinesses.get(1).name;
@@ -320,17 +320,17 @@ public class recommendationSystem {
     public static void main(String[] args) throws Exception {
 
         // Path and File variables
-        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
-        //String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
+        //String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
 
         // Serialize all businesses and create a PHT
         PHT pht = new PHT();
-        //Graph graph = new Graph();
+        Graph graph = new Graph();
         //getBusinesses(pht, folderPath);
+        graph.createEdges();
+        //pht.printAllBucketContents();
 
-        pht.printAllBucketContents();
-
-        runGUI(pht);
+        //runGUI(pht);
 
     }
 
