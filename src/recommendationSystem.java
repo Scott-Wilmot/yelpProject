@@ -8,8 +8,8 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
-    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
+    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    //static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     // Creates all 10000 businesses as serialized files and adds <name,ID> pairs to pht
@@ -65,16 +65,6 @@ public class recommendationSystem {
 
     }
 
-    //needs removal
-    static Business findBusiness(String text, ArrayList<Business> businesses) {
-        for (Business b : businesses) {
-            if (b.name.equalsIgnoreCase(text)) {
-                return b;
-            }
-        }
-        return null;
-    }
-
     static Hashtable<String, Float> getTF(Business business) {
         //words array stuff
         String text = business.review;
@@ -105,7 +95,7 @@ public class recommendationSystem {
             termFrequencies.put(s, frequency);
         }
 
-        return termFrequencies;   //Return our very useful and filled table
+        return termFrequencies;
     }
 
     static Hashtable<String, Float> getIDF(PHT pht, Business business) throws IOException, ClassNotFoundException {
@@ -178,8 +168,7 @@ public class recommendationSystem {
             for (String key : bucket.keys) { // For each key
                 if (key == null) break; //You've reached the end of the list...next bucket
                 Business b = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + bucket.get(key) + ".ser")).readObject();
-                float similarityValue = sumTF_IDF(b, idfTable);
-                b.setSimilarityValue(similarityValue);
+                b.similarityValue = sumTF_IDF(b, idfTable);
                 new ObjectOutputStream(new FileOutputStream("businesses\\" + b.ID + ".ser")).writeObject(b); // Update the serializable
             }
         }
@@ -320,15 +309,26 @@ public class recommendationSystem {
     public static void main(String[] args) throws Exception {
 
         // Path and File variables
-        //String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
-        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
+        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        //String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
 
         // Serialize all businesses and create a PHT
         PHT pht = new PHT();
         Graph graph = new Graph();
-        //getBusinesses(pht, folderPath);
+        getBusinesses(pht, folderPath);
+        graph.getNodes(pht);
         graph.createEdges();
         //pht.printAllBucketContents();
+        //graph.nodeNames();
+        //graph.getIDF(graph.getBusiness(graph.nodes.get(2).ID)); // Create IDF table
+//        for (String s : graph.idfTable.keySet()) {
+//            System.out.println(s + ", " + graph.idfTable.get(s));
+//        }
+//        graph.assignSimilarityValues(); // Internally assign sim vals based on indiv businesses tf tables and the src node IDF table
+//        graph.nodesInformation(); // Output/sanity check
+        //graph.createEdges(); // Recreate edges now that there is new similarity values
+        //graph.buildShortestPathTree(graph.nodes.get(2), null); // Build tree
+        //graph.nodesInformation();
 
         //runGUI(pht);
 

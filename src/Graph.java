@@ -8,9 +8,9 @@ class Edge implements Comparable<Edge>, Serializable {
         this.src = src;
         this.dst = dst;
         //Fetch serialized businesses based off of Node ID strings to calculate the weight
-        Business srcBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + src.ID + ".ser")).readObject();
-        Business dstBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + dst.ID + ".ser")).readObject();
-        this.weight = Math.abs(srcBusiness.similarityValue - dstBusiness.similarityValue); // Weight is determined by difference between similarity values
+//        Business srcBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + src.ID + ".ser")).readObject();
+//        Business dstBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + dst.ID + ".ser")).readObject();
+//        this.weight = Math.abs(srcBusiness.similarityValue - dstBusiness.similarityValue); // Weight is determined by difference between similarity values
     }
 
     @Override
@@ -72,7 +72,7 @@ public class Graph {
 
     void nodesInformation() throws IOException, ClassNotFoundException {
         for (Node node : nodes) {
-            System.out.println(node.ID + ", " + node.best);
+            System.out.println(node.ID + ", " + node.best + ", " + getBusiness(node.ID).similarityValue);
         }
     }
 
@@ -149,6 +149,76 @@ public class Graph {
         new ObjectOutputStream(new FileOutputStream("NODES.ser")).writeObject(nodes);
     }
 
+    public Hashtable<String, Float> getTF(Node node) throws IOException, ClassNotFoundException {
+        //words array stuff
+        Business b = getBusiness(node.ID);
+        String text = b.review;
+        ArrayList<String> words = new ArrayList<>(Arrays.asList(text.split("\\W+")));
+        words.replaceAll(String::toLowerCase);  //Set to lowercase to make Target and target the same when analyzed
+        float wordCount = words.size();
+        //Set up two tables: occurrences and termFrequencies with occurrences -> termFrequencies
+        Hashtable<String, Integer> occurrenceTable = new Hashtable<>();   //This will represent our occurrences
+        Hashtable<String, Float> termFrequencies = new Hashtable<>();
+
+
+        while (!words.isEmpty()) {  //Run through words list which accounts for changing array size, maybe implement in getBusinesses
+            String word = words.get(0); //This acts as the word to find frequency for
+            int occurrences = 0;    //count for occurrences of given word
+            for (String s : words) {    //Now cycle through words array and match
+                if (s.equals(word)) {   //Just .equals should work due to .replaceAll() being done earlier
+                    occurrences++;
+                }
+            }
+            occurrenceTable.put(word, occurrences);   //Place our occurrences in a table...
+            words.removeAll(Collections.singleton(word));   //...and subsequently remove given word from words
+        }
+        //Now get keySet from occurrences and use values to quickly calculate tf
+        Set<String> keySet = occurrenceTable.keySet();
+        for (String s : keySet) {
+            float occurrences = occurrenceTable.get(s);
+            float frequency = occurrences / wordCount;
+            termFrequencies.put(s, frequency);
+        }
+
+        return termFrequencies;
+    }
+
+    void getIDF(Business sourceBusiness) throws IOException, ClassNotFoundException {
+        HashSet<String> wordSet = sourceBusiness.getWordSet();
+
+        Hashtable<String, Integer> docOccurrences = new Hashtable<>(); //Variable for representing num of documents a word occurs in
+        Hashtable<String, Float> idf_table = new Hashtable<>();  //Will later represent the log(D/t) values
+
+        for (Node node : nodes) { // For each node in the graph
+            Business b = getBusiness(node.ID);
+            for (String word : wordSet) { // Check if the nodes wordset contains a word from the source businesses wordset
+                if (b.getWordSet().contains(word)) {
+                    if (!docOccurrences.containsKey(word)) {docOccurrences.put(word, 1);}
+                    else {docOccurrences.put(word, docOccurrences.get(word) + 1);}
+                }
+            }
+        }
+
+        for (String s : docOccurrences.keySet()) {
+            float occurrences = docOccurrences.get(s);
+            float idf = (float) Math.log10(1000 / occurrences);
+            idfTable.put(s, idf);
+        }
+    }
+
+    void assignSimilarityValues() throws IOException, ClassNotFoundException {
+        for (Node node : nodes) { // For every node
+            float sum = 0F;
+            //Business business = getBusiness(node.ID); // Get nodes correlated business
+            Hashtable<String, Float> tfTable = getTF(node);
+            for (String word : tfTable.keySet()) { // For each word in the businesses tfTable...
+                if (idfTable.containsKey(word)) {sum += idfTable.get(word) * tfTable.get(word);} // If the idfTable contains the word, add tf-idf to sum
+            }
+            getBusiness(node.ID).similarityValue = sum; // Set the businesses similarity value to the sum of all tf-idf
+            new ObjectOutputStream(new FileOutputStream("businesses\\" + node.ID + ".ser")).writeObject(getBusiness(node.ID)); // Update the business serializable
+        }
+    }
+
     void buildShortestPathTree(Node root, Node destination) {
         PQ pq = new PQ(nodes, root);
         Node p;
@@ -167,6 +237,7 @@ public class Graph {
     }
 
     ArrayList<Node> nodes = new ArrayList<>(); // Maybe change back to a collection later
+    Hashtable<String, Float> idfTable = new Hashtable<>();
 
 }
 

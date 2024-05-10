@@ -5,6 +5,8 @@ public class Business implements Serializable {
     String name;
     String review;
     String ID;
+
+    //Hashtable<String, Float> tfTable = new Hashtable<>();
     float similarityValue;
 
     // Assignment 3
@@ -19,14 +21,11 @@ public class Business implements Serializable {
         this.latitude = latitude;
     }
 
-    public Set<String> getWordSet() {   //Responsible for generating wordSet if one does not exist for object yet
+    public HashSet<String> getWordSet() {   //Responsible for generating wordSet if one does not exist for object yet
         ArrayList<String> words = new ArrayList<>(Arrays.asList(review.split("\\W+")));
         words.replaceAll(String::toLowerCase);
-        Set<String> wordSet = new HashSet<>(words);
+        HashSet<String> wordSet = new HashSet<>(words);
         return wordSet;
     }
 
-    public void setSimilarityValue(float similarityValue) {
-        this.similarityValue = similarityValue;
-    }
 }
