@@ -4,13 +4,9 @@ import java.util.*;
 class Edge implements Comparable<Edge>, Serializable {
     Node src, dst;
     double weight;
-    Edge(Node src, Node dst) throws IOException, ClassNotFoundException {
+    Edge(Node src, Node dst) {
         this.src = src;
         this.dst = dst;
-        //Fetch serialized businesses based off of Node ID strings to calculate the weight
-//        Business srcBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + src.ID + ".ser")).readObject();
-//        Business dstBusiness = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + dst.ID + ".ser")).readObject();
-//        this.weight = Math.abs(srcBusiness.similarityValue - dstBusiness.similarityValue); // Weight is determined by difference between similarity values
     }
 
     @Override
@@ -183,8 +179,9 @@ public class Graph {
         return termFrequencies;
     }
 
-    void getIDF(Business sourceBusiness) throws IOException, ClassNotFoundException {
-        HashSet<String> wordSet = sourceBusiness.getWordSet();
+    Hashtable<String, Float> getIDF(Node root) throws IOException, ClassNotFoundException {
+        Business rootBusiness = getBusiness(root.ID);
+        HashSet<String> wordSet = rootBusiness.getWordSet();
 
         Hashtable<String, Integer> docOccurrences = new Hashtable<>(); //Variable for representing num of documents a word occurs in
         Hashtable<String, Float> idf_table = new Hashtable<>();  //Will later represent the log(D/t) values
@@ -202,11 +199,13 @@ public class Graph {
         for (String s : docOccurrences.keySet()) {
             float occurrences = docOccurrences.get(s);
             float idf = (float) Math.log10(1000 / occurrences);
-            idfTable.put(s, idf);
+            idf_table.put(s, idf);
         }
+        return idf_table;
     }
 
-    void assignSimilarityValues() throws IOException, ClassNotFoundException {
+    void assignSimilarityValues(Node root) throws IOException, ClassNotFoundException {
+        Hashtable<String, Float> idfTable = getIDF(root);
         for (Node node : nodes) { // For every node
             float sum = 0F;
             //Business business = getBusiness(node.ID); // Get nodes correlated business
@@ -214,8 +213,20 @@ public class Graph {
             for (String word : tfTable.keySet()) { // For each word in the businesses tfTable...
                 if (idfTable.containsKey(word)) {sum += idfTable.get(word) * tfTable.get(word);} // If the idfTable contains the word, add tf-idf to sum
             }
-            getBusiness(node.ID).similarityValue = sum; // Set the businesses similarity value to the sum of all tf-idf
-            new ObjectOutputStream(new FileOutputStream("businesses\\" + node.ID + ".ser")).writeObject(getBusiness(node.ID)); // Update the business serializable
+            Business b = getBusiness(node.ID);
+            b.similarityValue = sum; // Set the businesses similarity value to the sum of all tf-idf
+            new ObjectOutputStream(new FileOutputStream("businesses\\" + node.ID + ".ser")).writeObject(b); // Update the business serializable
+        }
+    }
+
+    void calculateEdgeWeights() throws IOException, ClassNotFoundException {
+        for (Node node : nodes) { // For every node in graph
+            for (Edge edge : node.edges) { // For every edge in a node
+                // Fetch related businesses and make weight the difference in the nodes similarity values
+                Business srcBusiness = getBusiness(edge.src.ID);
+                Business dstBusiness = getBusiness(edge.dst.ID);
+                edge.weight = Math.abs(srcBusiness.similarityValue - dstBusiness.similarityValue);
+            }
         }
     }
 
@@ -223,11 +234,11 @@ public class Graph {
         PQ pq = new PQ(nodes, root);
         Node p;
         while ((p = pq.poll()) != null) { // Continuously pull nodes from PQ until no remaining nodes
-            //if (p == destination) break;
+            if (p == destination) break;
             for (Edge e : p.edges) { // For all edges of a node
                 Node s = e.src, d = e.dst; // Source and Destination nodes
                 double w = s.best + e.weight; //
-                if (w < d.best) {
+                if (w < d.best) { // If the new weight to dst is lesser than dst's current best, change d's parent and best score
                     d.parent = s;
                     d.best = w;
                     pq.resift(d);
@@ -236,8 +247,17 @@ public class Graph {
         }
     }
 
+    /*
+    This is the method which combines all components of the graph class in order to find the path between source and destination
+    This is what the GUI should call when dealing with pathing
+     */
+    void findPath(Node source, Node destination) throws IOException, ClassNotFoundException {
+        assignSimilarityValues(source);
+        calculateEdgeWeights();
+        buildShortestPathTree(source, destination);
+    }
+
     ArrayList<Node> nodes = new ArrayList<>(); // Maybe change back to a collection later
-    Hashtable<String, Float> idfTable = new Hashtable<>();
 
 }
 

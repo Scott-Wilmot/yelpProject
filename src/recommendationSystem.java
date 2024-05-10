@@ -8,8 +8,8 @@ import java.util.*;
 public class recommendationSystem {
 
     //Global Variables
-    static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
-    //static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
+    //static String directoryPath = "C:\\Users\\GooseAdmin\\IdeaProjects\\yelpProject"; // Path to the project folder
+    static String directoryPath = "C:\\Users\\scott\\IdeaProjects\\yelpProject";
     static String persistentHashTableName = "persistentHT.ser";
 
     // Creates all 10000 businesses as serialized files and adds <name,ID> pairs to pht
@@ -309,15 +309,15 @@ public class recommendationSystem {
     public static void main(String[] args) throws Exception {
 
         // Path and File variables
-        String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
-        //String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
+        //String folderPath = "C:\\Users\\GooseAdmin\\OneDrive\\Desktop\\YelpDataset"; // Path to the yelp database
+        String folderPath = "D:\\Semester 4\\CSC365\\YelpDatabase";
 
         // Serialize all businesses and create a PHT
         PHT pht = new PHT();
         Graph graph = new Graph();
-        getBusinesses(pht, folderPath);
-        graph.getNodes(pht);
-        graph.createEdges();
+        //getBusinesses(pht, folderPath);
+        //graph.getNodes(pht);
+        //graph.createEdges();
         //pht.printAllBucketContents();
         //graph.nodeNames();
         //graph.getIDF(graph.getBusiness(graph.nodes.get(2).ID)); // Create IDF table
@@ -325,10 +325,9 @@ public class recommendationSystem {
 //            System.out.println(s + ", " + graph.idfTable.get(s));
 //        }
 //        graph.assignSimilarityValues(); // Internally assign sim vals based on indiv businesses tf tables and the src node IDF table
-//        graph.nodesInformation(); // Output/sanity check
-        //graph.createEdges(); // Recreate edges now that there is new similarity values
-        //graph.buildShortestPathTree(graph.nodes.get(2), null); // Build tree
-        //graph.nodesInformation();
+        //graph.nodesInformation(); // Output/sanity check
+        graph.findPath(graph.nodes.get(100), null);
+        graph.nodesInformation();
 
         //runGUI(pht);
 
