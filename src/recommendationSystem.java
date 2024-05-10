@@ -262,49 +262,49 @@ public class recommendationSystem {
 
     }
 
-    static void runGUI(PHT pht) throws InterruptedException, IOException, ClassNotFoundException {
-        // Create GUI object
-        GUI mainFrame = new GUI();
-        mainFrame.setVisible(true);
-
-        // Infinite loop until user closes the window
-        while (true) {
-
-            if (mainFrame.inputExists) {    //If the user has inputted any input
-                Business business = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + pht.get(mainFrame.businessName) + ".ser")).readObject();
-                if (business != null) {
-                    //ArrayList<Business> businesses = new ArrayList<>(allBusinesses); //treats like temporary businesses since my search removes the inputted business from the list of all businesses so if the same list is kept, options will slowly be reduces and searches will not be consistent
-                    Hashtable<String, Float> idf_table = getIDF(pht, business); //Create an IDF table for all the businesses
-                    getSimilarityTables(pht, idf_table); //Gives each business its similarity rating
-
-                    Group inputGroup = null;
-                    ArrayList<Group> groups = clusterSimilarityValues(pht);
-                    for (Group g : groups) {
-                        if (g.contains(business.name)) {
-                            inputGroup = g;
-                            break;
-                        }
-                    }
-                    //reclusterGroups(groups);
-
-                    ArrayList<Business> simBusinesses = mostSimilarBusinesses(business, pht);
-                    String bothBusinesses = simBusinesses.get(0).name + ", " + simBusinesses.get(1).name;
-
-                    //Handling GUI display and state
-                    mainFrame.textArea.setText(bothBusinesses + "\nCluster center: " + inputGroup.center.name); // display
-                    mainFrame.inputExists = false; // state
-                }
-                else { // Invalid case
-                    mainFrame.textArea.setText("Cannot Find Business");
-                }
-
-            }
-            else {
-                Thread.sleep(1000); //Prevents my computer from exploding
-            }
-
-        }
-    }
+//    static void runGUI(PHT pht) throws InterruptedException, IOException, ClassNotFoundException {
+//        // Create GUI object
+//        GUI mainFrame = new GUI();
+//        mainFrame.setVisible(true);
+//
+//        // Infinite loop until user closes the window
+//        while (true) {
+//
+//            if (mainFrame.inputExists) {    //If the user has inputted any input
+//                Business business = (Business) new ObjectInputStream(new FileInputStream("businesses\\" + pht.get(mainFrame.businessName) + ".ser")).readObject();
+//                if (business != null) {
+//                    //ArrayList<Business> businesses = new ArrayList<>(allBusinesses); //treats like temporary businesses since my search removes the inputted business from the list of all businesses so if the same list is kept, options will slowly be reduces and searches will not be consistent
+//                    Hashtable<String, Float> idf_table = getIDF(pht, business); //Create an IDF table for all the businesses
+//                    getSimilarityTables(pht, idf_table); //Gives each business its similarity rating
+//
+//                    Group inputGroup = null;
+//                    ArrayList<Group> groups = clusterSimilarityValues(pht);
+//                    for (Group g : groups) {
+//                        if (g.contains(business.name)) {
+//                            inputGroup = g;
+//                            break;
+//                        }
+//                    }
+//                    //reclusterGroups(groups);
+//
+//                    ArrayList<Business> simBusinesses = mostSimilarBusinesses(business, pht);
+//                    String bothBusinesses = simBusinesses.get(0).name + ", " + simBusinesses.get(1).name;
+//
+//                    //Handling GUI display and state
+//                    mainFrame.textArea.setText(bothBusinesses + "\nCluster center: " + inputGroup.center.name); // display
+//                    mainFrame.inputExists = false; // state
+//                }
+//                else { // Invalid case
+//                    mainFrame.textArea.setText("Cannot Find Business");
+//                }
+//
+//            }
+//            else {
+//                Thread.sleep(1000); //Prevents my computer from exploding
+//            }
+//
+//        }
+//    }
 
     public static void main(String[] args) throws Exception {
 
@@ -326,8 +326,9 @@ public class recommendationSystem {
 //        }
 //        graph.assignSimilarityValues(); // Internally assign sim vals based on indiv businesses tf tables and the src node IDF table
         //graph.nodesInformation(); // Output/sanity check
-        graph.findPath(graph.nodes.get(100), null);
-        graph.nodesInformation();
+        System.out.println(graph.findPath(graph.nodes.get(100), graph.nodes.get(462)));
+        graph.printDisjointSet(graph.nodes.get(100));
+        //graph.nodesInformation();
 
         //runGUI(pht);
 

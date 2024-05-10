@@ -48,27 +48,39 @@ public class Graph {
     Graph () throws IOException, ClassNotFoundException {
         String nodeFile = "NODES.ser";
         if (new File(nodeFile).isFile()) { // If a serialized node file can be found
-            nodes = (ArrayList<Node>) new ObjectInputStream(new FileInputStream(nodeFile)).readObject();
+            nodes = (ArrayList<Node>) new ObjectInputStream(new FileInputStream(nodeFile)).readObject(); // Load nodes to graph
         }
         else { // Will create edges and serialize them to a file
-            getNodes(new PHT());
-            createEdges();
+            getNodes(new PHT()); // Fetch nodes
+            createEdges(); // Create the edges
         }
+        disjointSetCount = 0;
+        disjointSet = new ArrayList<>(nodes); // Copies nodes list to a new set array
+        buildDisjointSet(); // Creates the disjoint set based off of the newly generated/recovered edge information
     }
 
     Business getBusiness(String ID) throws IOException, ClassNotFoundException {
         return (Business) new ObjectInputStream(new FileInputStream("businesses\\" + ID + ".ser")).readObject();
     }
 
-    void nodeNames() throws IOException, ClassNotFoundException {
+    Node getNode(String ID) {
         for (Node node : nodes) {
-            System.out.println(getBusiness(node.ID).name);
+            if (node.ID.equals(ID)) { return node; }
+        }
+        return null;
+    }
+
+    void printDisjointSet(Node n) {
+        System.out.println(n.ID + ", ");
+        for (Edge e : n.edges) {
+            int index = disjointSet.indexOf(e.dst);
+            System.out.print(e.dst.ID + ", ");
         }
     }
 
     void nodesInformation() throws IOException, ClassNotFoundException {
         for (Node node : nodes) {
-            System.out.println(node.ID + ", " + node.best + ", " + getBusiness(node.ID).similarityValue);
+            System.out.println(getBusiness(node.ID).name + ", " + node.best + ", " + getBusiness(node.ID).similarityValue);
         }
     }
 
@@ -247,17 +259,71 @@ public class Graph {
         }
     }
 
+    Node find(Node x) {
+        if (x.parent != x) { // If x's parent is not itself, x is not the root so continue the find with the parent of x
+            return find(x.parent);
+        }
+        else return x; // You found the parent
+    }
+
+    // Uses the find function to find the root of a disjoint set and then make y's parent pointer point to x
+    void union(Node x, Node y) {
+        find(y).parent = find(x);
+    }
+
+    // This method creates the disjoint set list so then the find method can be used to check for connectivity later in the program
+    void buildDisjointSet() {
+        for (Node n : disjointSet) { // Cycle through the copy set nodes and edit their parent values
+            if (n.parent == null) {
+                n.parent = n;
+                disjointSetCount++; // Increments setCount since n is the root of its own disjoint set now
+            } // Sets n as the representative of a set if it has no parent
+            for (Edge e : n.edges) { // Now assign each edge of n
+                if (e.dst.parent == null) { e.dst.parent = n; } // If the edge dst has no parent, set n as it's parent
+                else if (find(n) != find(e.dst)){ // When e already has a parent, since edges bidirectional that means you can connect root of one set to the root of another as long as one link exists between any of their nodes
+                    union(n, e.dst); // Should trace both of these nodes to their representatives then connect the two representatives
+                    disjointSetCount--; // Decrements disjoint set count due to union reducing the number of sets by one
+                }
+            }
+        }
+    }
+
+    ArrayList<String> getDstToSrcPath(Node src, Node dst) throws IOException, ClassNotFoundException {
+        ArrayList<String> path = new ArrayList<>();
+        Node p = dst;
+        while (p != src) {
+            path.add(getBusiness(p.ID).name);
+            p = p.parent;
+        }
+        path.add(getBusiness(src.ID).name);
+        Collections.reverse(path);
+        return path;
+    }
+
     /*
     This is the method which combines all components of the graph class in order to find the path between source and destination
     This is what the GUI should call when dealing with pathing
      */
-    void findPath(Node source, Node destination) throws IOException, ClassNotFoundException {
-        assignSimilarityValues(source);
-        calculateEdgeWeights();
-        buildShortestPathTree(source, destination);
+    String findPath(Node source, Node destination) throws IOException, ClassNotFoundException {
+        System.out.println(source.ID + ", " + destination.ID);
+        System.out.println("dst: " + disjointSet.indexOf(destination) + ", src: " + disjointSet.indexOf(source));
+        Node disjointSrc = disjointSet.get(disjointSet.indexOf(source));
+        Node disjointDst = disjointSet.get(disjointSet.indexOf(destination));
+        if (find(disjointSrc) == find(disjointDst)) { // If src, dst are in the same set
+            assignSimilarityValues(source);
+            calculateEdgeWeights();
+            buildShortestPathTree(source, destination);
+            nodesInformation(); // Sanity check
+            return getDstToSrcPath(source, destination).toString(); // Path goes here
+        }
+        else {
+           return "No Path";
+        }
     }
 
     ArrayList<Node> nodes = new ArrayList<>(); // Maybe change back to a collection later
+    ArrayList<Node> disjointSet; // Copies the nodes list so this can be used for union-find
+    int disjointSetCount;
 
 }
 
